@@ -38,7 +38,7 @@ namespace colonist_editor
                         foreach(var record in skillRecords)
                         {
                             record.passion = Passion.Major;
-                            record.Learn(300000, true);
+                            record.Learn(300000, true, true);
                         }
 
                         var pawnTraits = pawn.story.traits;
