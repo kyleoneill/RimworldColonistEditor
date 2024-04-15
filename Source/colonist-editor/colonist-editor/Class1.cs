@@ -4,6 +4,7 @@ using Verse.AI;
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace colonist_editor
 {
@@ -22,11 +23,12 @@ namespace colonist_editor
         {
             if (myPawn.IsColonistPlayerControlled)
             {
-                TraitDef naturalMoodTraitDef = TraitDef.Named("NaturalMood");
-                Trait sanguineTrait = new Trait(naturalMoodTraitDef, 2);
-                TraitDef quickSleeperTraitDef = TraitDef.Named("QuickSleeper");
-                Trait quickSleeperTrait = new Trait(quickSleeperTraitDef);
+                Trait sanguineTrait = new Trait(TraitDef.Named("NaturalMood"), 2);
+                Trait quickSleeperTrait = new Trait(TraitDef.Named("QuickSleeper"));
                 List<Trait> traitsToAdd = new List<Trait>() {sanguineTrait, quickSleeperTrait};
+
+                Trait wimpTrait = new Trait(TraitDef.Named("Wimp"));
+                List<Trait> traitsToRemove = new List<Trait>() { wimpTrait };
                 
                 Map map = myPawn.Map;
                 var playerPawns = map.mapPawns.FreeColonists;
@@ -42,12 +44,40 @@ namespace colonist_editor
                         }
 
                         var pawnTraits = pawn.story.traits;
+
+                        // Remove traits we don't want
+                        foreach (var traitToRemove in traitsToRemove)
+                        {
+                            if (pawnTraits.HasTrait(traitToRemove.def))
+                            {
+                                pawnTraits.RemoveTrait(traitToRemove);
+                            }
+                        }
+
+                        // Add traits we do want
                         foreach (var trait in traitsToAdd)
                         {
+                            // If we already have a desired trait, but with the wrong degree, we want to remove it
+                            if (pawnTraits.HasTrait(trait.def) && !pawnTraits.HasTrait(trait.def, trait.Degree))
+                            {
+                                pawnTraits.RemoveTrait(trait);
+                            }
+
+                            // Add the traits we want
                             if (!pawnTraits.HasTrait(trait.def))
                             {
                                 pawnTraits.GainTrait(trait);
                             }
+                        }
+
+                        // If any of our pawns have a story that disables a work type, replace it with some story that has nothing disabled
+                        if (pawn.story.Childhood != null && pawn.story.Childhood.DisabledWorkTypes.Count > 0)
+                        {
+                            pawn.story.Childhood = DefDatabase<BackstoryDef>.GetNamed("FarmKid60");
+                        }
+                        if (pawn.story.Adulthood != null && pawn.story.Adulthood.DisabledWorkTypes.Count > 0)
+                        {
+                            pawn.story.Adulthood = DefDatabase<BackstoryDef>.GetNamed("CivilEngineer2");
                         }
                     }
                 }
