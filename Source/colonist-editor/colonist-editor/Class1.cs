@@ -34,7 +34,7 @@ namespace colonist_editor
                 var playerPawns = map.mapPawns.FreeColonists;
                 foreach (Pawn pawn in playerPawns)
                 {
-                    if (pawn.IsColonistPlayerControlled)
+                    if (pawn.IsColonistPlayerControlled && pawn.ageTracker.Adult)
                     {
                         List<SkillRecord> skillRecords = pawn.skills.skills;
                         foreach(var record in skillRecords)
